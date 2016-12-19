@@ -8,27 +8,20 @@ function Load_ZarinPal_Gateway() {
 
     if (class_exists('WC_Payment_Gateway') && !class_exists('WC_ZPal') && !function_exists('Woocommerce_Add_ZarinPal_Gateway')) {
 
-
         add_filter('woocommerce_payment_gateways', 'Woocommerce_Add_ZarinPal_Gateway');
-
         function Woocommerce_Add_ZarinPal_Gateway($methods) {
             $methods[] = 'WC_ZPal';
             return $methods;
         }
-
         add_filter('woocommerce_currencies', 'add_IR_currency');
-
         function add_IR_currency($currencies) {
             $currencies['IRR'] = __('ریال', 'woocommerce');
             $currencies['IRT'] = __('تومان', 'woocommerce');
             $currencies['IRHR'] = __('هزار ریال', 'woocommerce');
             $currencies['IRHT'] = __('هزار تومان', 'woocommerce');
-
             return $currencies;
         }
-
         add_filter('woocommerce_currency_symbol', 'add_IR_currency_symbol', 10, 2);
-
         function add_IR_currency_symbol($currency_symbol, $currency) {
             switch ($currency) {
                 case 'IRR': $currency_symbol = 'ریال';
@@ -46,44 +39,29 @@ function Load_ZarinPal_Gateway() {
         class WC_ZPal extends WC_Payment_Gateway {
 
             public function __construct() {
-
                 $this->id = 'WC_ZPal';
                 $this->method_title = __('پرداخت امن زرین پال', 'woocommerce');
                 $this->method_description = __('تنظیمات درگاه پرداخت زرین پال برای افزونه فروشگاه ساز ووکامرس', 'woocommerce');
                 $this->icon = apply_filters('WC_ZPal_logo', WP_PLUGIN_URL."/".plugin_basename(dirname(__FILE__)).'/assets/images/logo.png');
                 $this->has_fields = false;
-
                 $this->init_form_fields();
                 $this->init_settings();
-
                 $this->title = $this->settings['title'];
                 $this->description = $this->settings['description'];
-
                 $this->merchantcode = $this->settings['merchantcode'];
-
                 $this->success_massage = $this->settings['success_massage'];
                 $this->failed_massage = $this->settings['failed_massage'];
-
                 if (version_compare(WOOCOMMERCE_VERSION, '2.0.0', '>=')) {
                                     add_action('woocommerce_update_options_payment_gateways_'.$this->id, array($this, 'process_admin_options'));
                 } else {
                                     add_action('woocommerce_update_options_payment_gateways', array($this, 'process_admin_options'));
                 }
-
                 add_action('woocommerce_receipt_'.$this->id.'', array($this, 'Send_to_ZarinPal_Gateway'));
-                add_action('woocommerce_api_'.strtolower(get_class($this)).'', array($this, 'Return_from_ZarinPal_Gateway'));
-				
-			
+                add_action('woocommerce_api_'.strtolower(get_class($this)).'', array($this, 'Return_from_ZarinPal_Gateway'));		
         }
-		
-            
-
             public function admin_options() {
-
-
                 parent::admin_options();
             }
-
             public function init_form_fields() {
                 $this->form_fields = apply_filters('WC_ZPal_Config', array(
                     'base_confing' => array(
@@ -155,7 +133,6 @@ function Load_ZarinPal_Gateway() {
             }
 
             public function Send_to_ZarinPal_Gateway($order_id) {
-
                 global $woocommerce;
                 $woocommerce->session->order_id_zarinpal = $order_id;
                 $order = new WC_Order($order_id);
@@ -202,7 +179,6 @@ function Load_ZarinPal_Gateway() {
                 do_action('WC_ZPal_Gateway_Payment', $order_id, $Description, $Mobile);
                 $Email = !filter_var($Email, FILTER_VALIDATE_EMAIL) === false ? $Email : '';
                 $Mobile = preg_match('/^09[0-9]{9}/i', $Mobile) ? $Mobile : '';
-
                 try {
                     $client = new SoapClient('https://www.zarinpal.com/pg/services/WebGate/wsdl', array('encoding' => 'UTF-8'));
 
@@ -228,15 +204,11 @@ function Load_ZarinPal_Gateway() {
                     $Message = $ex->getMessage();
                     $Fault = '';
                 }
-
-
                 if (!empty($Message) && $Message) {
 
                     $Note = sprintf(__('خطا در هنگام ارسال به بانک : %s', 'woocommerce'), $Message);
                     $Note = apply_filters('WC_ZPal_Send_to_Gateway_Failed_Note', $Note, $order_id, $Fault);
                     $order->add_order_note($Note);
-
-
                     $Notice = sprintf(__('در هنگام اتصال به بانک خطای زیر رخ داده است : <br/>%s', 'woocommerce'), $Message);
                     $Notice = apply_filters('WC_ZPal_Send_to_Gateway_Failed_Notice', $Notice, $order_id, $Fault);
                     if ($Notice) {
@@ -248,14 +220,8 @@ function Load_ZarinPal_Gateway() {
             }
 
             public function Return_from_ZarinPal_Gateway() {
-
-
-
                 $InvoiceNumber = isset($_POST['InvoiceNumber']) ? $_POST['InvoiceNumber'] : '';
-
                 global $woocommerce;
-
-
                 if (isset($_GET['wc_order'])) {
                                     $order_id = $_GET['wc_order'];
                 } else if ($InvoiceNumber) {
@@ -264,19 +230,14 @@ function Load_ZarinPal_Gateway() {
                     $order_id = $woocommerce->session->order_id_zarinpal;
                     unset($woocommerce->session->order_id_zarinpal);
                 }
-
                 if ($order_id) {
-
                     $order = new WC_Order($order_id);
                     $currency = $order->get_order_currency();
                     $currency = apply_filters('WC_ZPal_Currency', $currency, $order_id);
 
                     if ($order->status != 'completed') {
-
                         $MerchantCode = $this->merchantcode;
-
                         if ($_GET['Status'] == "OK") {
-
                             $MerchantID = $this->merchantcode;
                             $Amount = intval($order->order_total);
                             $Amount = apply_filters('woocommerce_order_amount_total_IRANIAN_gateways_before_check_currency', $Amount, $currency);
@@ -290,17 +251,13 @@ function Load_ZarinPal_Gateway() {
                             } else if (strtolower($currency) == strtolower('IRR')) {
                                                             $Amount = $Amount / 10;
                             }
-
                             $Authority = $_GET['Authority'];
-
                             $client = new SoapClient('https://www.zarinpal.com/pg/services/WebGate/wsdl', array('encoding' => 'UTF-8'));
-
                             $result = $client->PaymentVerification(array(
                                 'MerchantID' => $MerchantID,
                                 'Authority' => $Authority,
                                 'Amount' => $Amount,
                             ));
-
                             if ($result->Status == 100) {
                                 $Status = 'completed';
                                 $Transaction_ID = $result->RefID;
@@ -318,22 +275,15 @@ function Load_ZarinPal_Gateway() {
                             $Fault = '';
                             $Message = 'تراکنش انجام نشد .';
                         }
-
                         if ($Status == 'completed' && isset($Transaction_ID) && $Transaction_ID != 0) {
                             update_post_meta($order_id, '_transaction_id', $Transaction_ID);
-
-
-
                             $order->payment_complete($Transaction_ID);
                             $woocommerce->cart->empty_cart();
-
                             $Note = sprintf(__('پرداخت موفقیت آمیز بود .<br/> کد رهگیری : %s', 'woocommerce'), $Transaction_ID);
                             $Note = apply_filters('WC_ZPal_Return_from_Gateway_Success_Note', $Note, $order_id, $Transaction_ID);
                             if ($Note) {
                                                             $order->add_order_note($Note, 1);
                             }
-
-
                             $Notice = wpautop(wptexturize($this->success_massage));
 
                             $Notice = str_replace("{transaction_id}", $Transaction_ID, $Notice);
@@ -342,16 +292,11 @@ function Load_ZarinPal_Gateway() {
                             if ($Notice) {
                                                             wc_add_notice($Notice, 'success');
                             }
-
                             do_action('WC_ZPal_Return_from_Gateway_Success', $order_id, $Transaction_ID);
 
                             wp_redirect(add_query_arg('wc_status', 'success', $this->get_return_url($order)));
                             exit;
                         } else {
-
-
-
-
                             $tr_id = $_GET['Authority'];
 
                             $Note = sprintf(__('خطا در هنگام بازگشت از بانک : %s %s', 'woocommerce'), $Message, $tr_id);
@@ -377,8 +322,6 @@ function Load_ZarinPal_Gateway() {
                             exit;
                         }
                     } else {
-
-
                         $Transaction_ID = get_post_meta($order_id, '_transaction_id', true);
 
                         $Notice = wpautop(wptexturize($this->success_massage));
@@ -397,9 +340,6 @@ function Load_ZarinPal_Gateway() {
                         exit;
                     }
                 } else {
-
-
-
                     $Fault = __('شماره سفارش وجود ندارد .', 'woocommerce');
                     $Notice = wpautop(wptexturize($this->failed_massage));
                     $Notice = str_replace("{fault}", $Fault, $Notice);
@@ -419,5 +359,4 @@ function Load_ZarinPal_Gateway() {
 
     }
 }
-
 add_action('plugins_loaded', 'Load_ZarinPal_Gateway', 0);
