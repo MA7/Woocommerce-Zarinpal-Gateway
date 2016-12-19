@@ -400,7 +400,7 @@ function Load_ZarinPal_Gateway() {
                     if ($Notice)
                         wc_add_notice($Notice, 'error');
 
-                    do_action('WC_ZPal_Return_from_Gateway_No_Order_ID', $order_id, $Transaction_ID, $Fault);
+                    do_action('WC_ZPal_Return_from_Gateway_No_Order_ID', $order_id, '0', $Fault);
 
                     wp_redirect($woocommerce->cart->get_checkout_url());
                     exit;
