@@ -365,7 +365,7 @@ function Load_ZarinPal_Gateway() {
 
 
 
-                            $tr_id = ( $Transaction_ID && $Transaction_ID != 0 ) ? ('<br/>توکن : ' . $Transaction_ID) : '';
+                            $tr_id = (  $Transaction_ID > 1 ) ? ('<br/>توکن : ' . $Transaction_ID) : '';
 
                             $Note = sprintf(__('خطا در هنگام بازگشت از بانک : %s %s', 'woocommerce'), $Message, $tr_id);
 
