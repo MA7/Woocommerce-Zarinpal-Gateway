@@ -154,29 +154,19 @@ function Load_ZarinPal_Gateway() {
 
             public function Send_to_ZarinPal_Gateway($order_id) {
 
-
-
                 global $woocommerce;
                 $woocommerce->session->order_id_zarinpal = $order_id;
                 $order = new WC_Order($order_id);
                 $currency = $order->get_order_currency();
                 $currency = apply_filters('WC_ZPal_Currency', $currency, $order_id);
-
-
                 $form = '<form action="" method="POST" class="zarinpal-checkout-form" id="zarinpal-checkout-form">
 						<input type="submit" name="zarinpal_submit" class="button alt" id="zarinpal-payment-button" value="' . __('پرداخت', 'woocommerce') . '"/>
 						<a class="button cancel" href="' . $woocommerce->cart->get_checkout_url() . '">' . __('بازگشت', 'woocommerce') . '</a>
 					 </form><br/>';
                 $form = apply_filters('WC_ZPal_Form', $form, $order_id, $woocommerce);
-
                 do_action('WC_ZPal_Gateway_Before_Form', $order_id, $woocommerce);
                 echo $form;
                 do_action('WC_ZPal_Gateway_After_Form', $order_id, $woocommerce);
-
-
-
-
-
                 $Amount = intval($order->order_total);
                 $Amount = apply_filters('woocommerce_order_amount_total_IRANIAN_gateways_before_check_currency', $Amount, $currency);
                 if (strtolower($currency) == strtolower('IRT') || strtolower($currency) == strtolower('TOMAN') || strtolower($currency) == strtolower('Iran TOMAN') || strtolower($currency) == strtolower('Iranian TOMAN') || strtolower($currency) == strtolower('Iran-TOMAN') || strtolower($currency) == strtolower('Iranian-TOMAN') || strtolower($currency) == strtolower('Iran_TOMAN') || strtolower($currency) == strtolower('Iranian_TOMAN') || strtolower($currency) == strtolower('تومان') || strtolower($currency) == strtolower('تومان ایران')
@@ -188,15 +178,10 @@ function Load_ZarinPal_Gateway() {
                     $Amount = $Amount * 100;
                 else if (strtolower($currency) == strtolower('IRR'))
                     $Amount = $Amount / 10;
-
-
                 $Amount = apply_filters('woocommerce_order_amount_total_IRANIAN_gateways_after_check_currency', $Amount, $currency);
                 $Amount = apply_filters('woocommerce_order_amount_total_IRANIAN_gateways_irt', $Amount, $currency);
                 $Amount = apply_filters('woocommerce_order_amount_total_ZarinPal_gateway', $Amount, $currency);
-
-
                 $CallbackUrl = add_query_arg('wc_order', $order_id, WC()->api_request_url('WC_ZPal'));
-
                 $products = array();
                 $order_items = $order->get_items();
                 foreach ((array) $order_items as $product) {
@@ -207,13 +192,10 @@ function Load_ZarinPal_Gateway() {
                 $Description = 'خرید به شماره سفارش : ' . $order->get_order_number() . ' | خریدار : ' . $order->billing_first_name . ' ' . $order->billing_last_name . ' | محصولات : ' . $products;
                 $Mobile = get_post_meta($order_id, '_billing_phone', true) ? get_post_meta($order_id, '_billing_phone', true) : '-';
                 $Email = $order->billing_email;
-                $ResNumber = intval($order->get_order_number());
-
                 //Hooks for iranian developer
                 $Description = apply_filters('WC_ZPal_Description', $Description, $order_id);
                 $Mobile = apply_filters('WC_ZPal_Mobile', $Mobile, $order_id);
                 $Email = apply_filters('WC_ZPal_Email', $Email, $order_id);
-
                 do_action('WC_ZPal_Gateway_Payment', $order_id, $Description, $Mobile);
                 $Email = !filter_var($Email, FILTER_VALIDATE_EMAIL) === false ? $Email : '';
                 $Mobile = preg_match('/^09[0-9]{9}/i', $Mobile) ? $Mobile : '';
@@ -326,6 +308,7 @@ function Load_ZarinPal_Gateway() {
                                 $Message = 'تراکنش ناموفق بود';
                             }
                         } else {
+			    $Transaction_ID = 0;
                             $Status = 'failed';
                             $Fault = '';
                             $Message = 'تراکنش انجام نشد .';
@@ -367,20 +350,20 @@ function Load_ZarinPal_Gateway() {
 
                             $Note = sprintf(__('خطا در هنگام بازگشت از بانک : %s %s', 'woocommerce'), $Message, $tr_id);
 
-                            $Note = apply_filters('WC_ZPal_Return_from_Gateway_Failed_Note', $Note, $order_id, $Transaction_ID, $Fault);
+                            $Note = apply_filters('WC_ZPal_Return_from_Gateway_Failed_Note', $Note, $order_id, $tr_id, $Fault);
                             if ($Note)
                                 $order->add_order_note($Note, 1);
 
                             $Notice = wpautop(wptexturize($this->failed_massage));
 
-                            $Notice = str_replace("{transaction_id}", $Transaction_ID, $Notice);
+                            $Notice = str_replace("{transaction_id}", $tr_id, $Notice);
 
                             $Notice = str_replace("{fault}", $Message, $Notice);
-                            $Notice = apply_filters('WC_ZPal_Return_from_Gateway_Failed_Notice', $Notice, $order_id, $Transaction_ID, $Fault);
+                            $Notice = apply_filters('WC_ZPal_Return_from_Gateway_Failed_Notice', $Notice, $order_id, $tr_id, $Fault);
                             if ($Notice)
                                 wc_add_notice($Notice, 'error');
 
-                            do_action('WC_ZPal_Return_from_Gateway_Failed', $order_id, $Transaction_ID, $Fault);
+                            do_action('WC_ZPal_Return_from_Gateway_Failed', $order_id, $tr_id, $Fault);
 
                             wp_redirect($woocommerce->cart->get_checkout_url());
                             exit;
