@@ -65,13 +65,13 @@ function Load_ZarinPal_Gateway() {
                 $this->failed_massage = $this->settings['failed_massage'];
 
                 if (version_compare(WOOCOMMERCE_VERSION, '2.0.0', '>=')) {
-                                    add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
+                                    add_action('woocommerce_update_options_payment_gateways_'.$this->id, array($this, 'process_admin_options'));
                 } else {
                                     add_action('woocommerce_update_options_payment_gateways', array($this, 'process_admin_options'));
                 }
 
-                add_action('woocommerce_receipt_' . $this->id . '', array($this, 'Send_to_ZarinPal_Gateway'));
-                add_action('woocommerce_api_' . strtolower(get_class($this)) . '', array($this, 'Return_from_ZarinPal_Gateway'));
+                add_action('woocommerce_receipt_'.$this->id.'', array($this, 'Send_to_ZarinPal_Gateway'));
+                add_action('woocommerce_api_'.strtolower(get_class($this)).'', array($this, 'Return_from_ZarinPal_Gateway'));
 				
 			
         }
@@ -172,14 +172,15 @@ function Load_ZarinPal_Gateway() {
                 $Amount = intval($order->order_total);
                 $Amount = apply_filters('woocommerce_order_amount_total_IRANIAN_gateways_before_check_currency', $Amount, $currency);
                 if (strtolower($currency) == strtolower('IRT') || strtolower($currency) == strtolower('TOMAN') || strtolower($currency) == strtolower('Iran TOMAN') || strtolower($currency) == strtolower('Iranian TOMAN') || strtolower($currency) == strtolower('Iran-TOMAN') || strtolower($currency) == strtolower('Iranian-TOMAN') || strtolower($currency) == strtolower('Iran_TOMAN') || strtolower($currency) == strtolower('Iranian_TOMAN') || strtolower($currency) == strtolower('تومان') || strtolower($currency) == strtolower('تومان ایران')
-                )
-                    $Amount = $Amount * 1;
-                else if (strtolower($currency) == strtolower('IRHT'))
-                    $Amount = $Amount * 1000;
-                else if (strtolower($currency) == strtolower('IRHR'))
-                    $Amount = $Amount * 100;
-                else if (strtolower($currency) == strtolower('IRR'))
-                    $Amount = $Amount / 10;
+                ) {
+                                    $Amount = $Amount * 1;
+                } else if (strtolower($currency) == strtolower('IRHT')) {
+                                    $Amount = $Amount * 1000;
+                } else if (strtolower($currency) == strtolower('IRHR')) {
+                                    $Amount = $Amount * 100;
+                } else if (strtolower($currency) == strtolower('IRR')) {
+                                    $Amount = $Amount / 10;
+                }
                 $Amount = apply_filters('woocommerce_order_amount_total_IRANIAN_gateways_after_check_currency', $Amount, $currency);
                 $Amount = apply_filters('woocommerce_order_amount_total_IRANIAN_gateways_irt', $Amount, $currency);
                 $Amount = apply_filters('woocommerce_order_amount_total_ZarinPal_gateway', $Amount, $currency);
@@ -356,8 +357,9 @@ function Load_ZarinPal_Gateway() {
                             $Note = sprintf(__('خطا در هنگام بازگشت از بانک : %s %s', 'woocommerce'), $Message, $tr_id);
 
                             $Note = apply_filters('WC_ZPal_Return_from_Gateway_Failed_Note', $Note, $order_id, $tr_id, $Fault);
-                            if ($Note)
-                                $order->add_order_note($Note, 1);
+                            if ($Note) {
+                                                            $order->add_order_note($Note, 1);
+                            }
 
                             $Notice = wpautop(wptexturize($this->failed_massage));
 
@@ -365,16 +367,16 @@ function Load_ZarinPal_Gateway() {
 
                             $Notice = str_replace("{fault}", $Message, $Notice);
                             $Notice = apply_filters('WC_ZPal_Return_from_Gateway_Failed_Notice', $Notice, $order_id, $tr_id, $Fault);
-                            if ($Notice)
-                                wc_add_notice($Notice, 'error');
+                            if ($Notice) {
+                                                            wc_add_notice($Notice, 'error');
+                            }
 
                             do_action('WC_ZPal_Return_from_Gateway_Failed', $order_id, $tr_id, $Fault);
 
                             wp_redirect($woocommerce->cart->get_checkout_url());
                             exit;
                         }
-                    }
-                    else {
+                    } else {
 
 
                         $Transaction_ID = get_post_meta($order_id, '_transaction_id', true);
