@@ -194,7 +194,7 @@ function Load_ZarinPal_Gateway() {
                 $Amount = apply_filters('woocommerce_order_amount_total_IRANIAN_gateways_irt', $Amount, $currency);
                 $Amount = apply_filters('woocommerce_order_amount_total_ZarinPal_gateway', $Amount, $currency);
 
-                $MerchantCode = $this->merchantcode;
+
                 $CallbackUrl = add_query_arg('wc_order', $order_id, WC()->api_request_url('WC_ZPal'));
 
                 $products = array();
@@ -207,15 +207,13 @@ function Load_ZarinPal_Gateway() {
                 $Description = 'خرید به شماره سفارش : ' . $order->get_order_number() . ' | خریدار : ' . $order->billing_first_name . ' ' . $order->billing_last_name . ' | محصولات : ' . $products;
                 $Mobile = get_post_meta($order_id, '_billing_phone', true) ? get_post_meta($order_id, '_billing_phone', true) : '-';
                 $Email = $order->billing_email;
-                $Paymenter = $order->billing_first_name . ' ' . $order->billing_last_name;
                 $ResNumber = intval($order->get_order_number());
 
                 //Hooks for iranian developer
                 $Description = apply_filters('WC_ZPal_Description', $Description, $order_id);
                 $Mobile = apply_filters('WC_ZPal_Mobile', $Mobile, $order_id);
                 $Email = apply_filters('WC_ZPal_Email', $Email, $order_id);
-                $Paymenter = apply_filters('WC_ZPal_Paymenter', $Paymenter, $order_id);
-                $ResNumber = apply_filters('WC_ZPal_ResNumber', $ResNumber, $order_id);
+
                 do_action('WC_ZPal_Gateway_Payment', $order_id, $Description, $Mobile);
                 $Email = !filter_var($Email, FILTER_VALIDATE_EMAIL) === false ? $Email : '';
                 $Mobile = preg_match('/^09[0-9]{9}/i', $Mobile) ? $Mobile : '';
@@ -365,7 +363,7 @@ function Load_ZarinPal_Gateway() {
 
 
 
-                            $tr_id = (  $Transaction_ID > 1 ) ? ('<br/>توکن : ' . $Transaction_ID) : '';
+                            $tr_id = $_GET['Authority'];
 
                             $Note = sprintf(__('خطا در هنگام بازگشت از بانک : %s %s', 'woocommerce'), $Message, $tr_id);
 
