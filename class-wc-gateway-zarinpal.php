@@ -236,7 +236,6 @@ function Load_ZarinPal_Gateway() {
                     $currency = apply_filters('WC_ZPal_Currency', $currency, $order_id);
 
                     if ($order->status != 'completed') {
-                        $MerchantCode = $this->merchantcode;
                         if ($_GET['Status'] == "OK") {
                             $MerchantID = $this->merchantcode;
                             $Amount = intval($order->order_total);
