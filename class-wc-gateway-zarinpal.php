@@ -322,6 +322,7 @@ function Load_ZarinPal_Gateway() {
                                 $Fault = '';
                                 $Message = '';
                             } else {
+				$Transaction_ID = 0;
                                 $Status = 'failed';
                                 $Fault = $result->Status;
                                 $Message = 'تراکنش ناموفق بود';
